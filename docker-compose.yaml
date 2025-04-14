@@ -42,7 +42,7 @@ services:
       - "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.service=${SERVICE_UNIFI_NAME}-stun-service"
       - "traefik.udp.services.${SERVICE_UNIFI_NAME}-stun-service.loadbalancer.server.port=3478"
 
-      - "traefik.tcp.routers.${SERVICE_UNIFI_NAME}-ufmst-router.rule=HostSNI(`unw.${SERVICE_UNIFI_FQDN}`)"
+      - "traefik.tcp.routers.${SERVICE_UNIFI_NAME}-ufmst-router.rule=HostSNI(`*`)"
       - "traefik.tcp.routers.${SERVICE_UNIFI_NAME}-ufmst-router.entryPoints=ufmst"
       - "traefik.tcp.routers.${SERVICE_UNIFI_NAME}-ufmst-router.service=${SERVICE_UNIFI_NAME}-ufmst-service"
       - "traefik.tcp.services.${SERVICE_UNIFI_NAME}-ufmst-service.loadbalancer.server.port=6789"
