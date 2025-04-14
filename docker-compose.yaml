@@ -36,7 +36,7 @@ services:
       - "traefik.http.routers.${SERVICE_UNIFI_NAME}-device-router.rule=Host(`unw.${SERVICE_UNIFI_FQDN}`)&&PathPrefix(`/inform`)"
       - "traefik.http.routers.${SERVICE_UNIFI_NAME}-device-router.entryPoints=ufdevices"
       - "traefik.http.routers.${SERVICE_UNIFI_NAME}-device-router.service=${SERVICE_UNIFI_NAME}-device-service"
-      - "traefik.http.services.${SERVICE_UNIFI_NAME}-device-service.loadbalancer.server.port=8280"
+      - "traefik.http.services.${SERVICE_UNIFI_NAME}-device-service.loadbalancer.server.port=8080"
 
       - "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.entryPoints=stun"
       - "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.service=${SERVICE_UNIFI_NAME}-stun-service"
