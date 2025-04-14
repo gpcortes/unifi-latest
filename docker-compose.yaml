@@ -14,12 +14,12 @@ services:
       - ./data:/var/lib/unifi
       - ./log:/var/log/unifi
       - ./run:/var/run/unifi
-    ports:
-      - 3478:3478/udp # STUN
-      - 8280:8080 # Device and App Communication
-      - 8443:8443 # App GUI/API
-      - 6789:6789 # Mobile Speed Test
-      - 8843:8843 # HTTPS portal redirection for Hotspot
+    # ports:
+    #   - 3478:3478/udp # STUN
+    #   - 8280:8080 # Device and App Communication
+    #   - 8443:8443 # App GUI/API
+    #   - 6789:6789 # Mobile Speed Test
+    #   - 8843:8843 # HTTPS portal redirection for Hotspot
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -38,18 +38,20 @@ services:
       - "traefik.http.routers.${SERVICE_UNIFI_NAME}-device-router.service=${SERVICE_UNIFI_NAME}-device-service"
       - "traefik.http.services.${SERVICE_UNIFI_NAME}-device-service.loadbalancer.server.port=8080"
 
-      #- "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.entryPoints=stun"
-      #- "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.service=${SERVICE_UNIFI_NAME}-stun-service"
-      #- "traefik.udp.services.${SERVICE_UNIFI_NAME}-stun-service.loadbalancer.server.port=3478"
+      - "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.entryPoints=stun"
+      - "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.service=${SERVICE_UNIFI_NAME}-stun-service"
+      - "traefik.udp.services.${SERVICE_UNIFI_NAME}-stun-service.loadbalancer.server.port=3478"
 
-      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.rule=Host(`captive.${SERVICE_UNIFI_FQDN}`)"
-      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.entryPoints=websecure"
-      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.tls=true"
-      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.service=${SERVICE_UNIFI_NAME}-captive-service"
-      #- "traefik.http.services.${SERVICE_UNIFI_NAME}-captive-service.loadbalancer.server.scheme=https"
-      #- "traefik.http.services.${SERVICE_UNIFI_NAME}-captive-service.loadbalancer.server.port=8843"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.rule=Host(`captive.${SERVICE_UNIFI_FQDN}`)"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.entryPoints=websecure"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.tls=true"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.service=${SERVICE_UNIFI_NAME}-captive-service"
+      - "traefik.http.services.${SERVICE_UNIFI_NAME}-captive-service.loadbalancer.server.scheme=https"
+      - "traefik.http.services.${SERVICE_UNIFI_NAME}-captive-service.loadbalancer.server.port=8843"
+    networks:
+      - default
 
-# networks:
-#   default:
-#     external: true
-#     name: ${SERVICE_TRAEFIK_NETWORK}
+networks:
+  default:
+    external: true
+    name: ${SERVICE_TRAEFIK_NETWORK}
