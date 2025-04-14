@@ -1,0 +1,55 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MEM_LIMIT=2048
+      - MEM_STARTUP=1024
+      - UNIFI_CORE_ENABLED=false
+      - REDIRECT_HTTPS=false
+    volumes:
+      - ./data:/var/lib/unifi
+      - ./log:/var/log/unifi
+      - ./run:/var/run/unifi
+    ports:
+      - 3478:3478/udp # STUN
+      - 8280:8080 # Device and App Communication
+      - 8443:8443 # App GUI/API
+      - 6789:6789 # Mobile Speed Test
+      - 8843:8843 # HTTPS portal redirection for Hotspot
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${SERVICE_TRAEFIK_NETWORK}"
+
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-console-router.rule=Host(`unw.${SERVICE_UNIFI_FQDN}`)"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-console-router.entryPoints=websecure"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-console-router.tls=true"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-console-router.service=${SERVICE_UNIFI_NAME}-console-service"
+      - "traefik.http.services.${SERVICE_UNIFI_NAME}-console-service.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.${SERVICE_UNIFI_NAME}-console-service.loadbalancer.server.scheme=https"
+      - "traefik.http.services.${SERVICE_UNIFI_NAME}-console-service.loadbalancer.server.port=8443"
+
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-device-router.rule=Host(`unw.${SERVICE_UNIFI_FQDN}`)&&PathPrefix(`/inform`)"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-device-router.entryPoints=web"
+      - "traefik.http.routers.${SERVICE_UNIFI_NAME}-device-router.service=${SERVICE_UNIFI_NAME}-device-service"
+      - "traefik.http.services.${SERVICE_UNIFI_NAME}-device-service.loadbalancer.server.port=8080"
+
+      #- "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.entryPoints=stun"
+      #- "traefik.udp.routers.${SERVICE_UNIFI_NAME}-stun-router.service=${SERVICE_UNIFI_NAME}-stun-service"
+      #- "traefik.udp.services.${SERVICE_UNIFI_NAME}-stun-service.loadbalancer.server.port=3478"
+
+      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.rule=Host(`captive.${SERVICE_UNIFI_FQDN}`)"
+      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.entryPoints=websecure"
+      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.tls=true"
+      #- "traefik.http.routers.${SERVICE_UNIFI_NAME}-captive-router.service=${SERVICE_UNIFI_NAME}-captive-service"
+      #- "traefik.http.services.${SERVICE_UNIFI_NAME}-captive-service.loadbalancer.server.scheme=https"
+      #- "traefik.http.services.${SERVICE_UNIFI_NAME}-captive-service.loadbalancer.server.port=8843"
+
+# networks:
+#   default:
+#     external: true
+#     name: ${SERVICE_TRAEFIK_NETWORK}

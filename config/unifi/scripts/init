@@ -1,0 +1,79 @@
+#!/bin/bash
+if [[ ! -e /var/lib/unifi/system.properties ]]; then
+    cp /defaults/system.properties /var/lib/unifi
+fi
+
+# Configure memory limits
+if grep -q "xmx" /var/lib/unifi/system.properties && grep -q "xms" /var/lib/unifi/system.properties; then
+    if [[ $MEM_LIMIT == "default" ]]; then
+        echo "*** Setting Java memory limit to default ***"
+        sed -i "/unifi.xmx=.*/d" /var/lib/unifi/system.properties
+    elif [[ -n $MEM_LIMIT ]]; then
+        echo "*** Setting Java memory limit to $MEM_LIMIT ***"
+        sed -i "s/unifi.xmx=.*/unifi.xmx=$MEM_LIMIT/" /var/lib/unifi/system.properties 
+    fi
+    if [[ $MEM_STARTUP == "default" ]]; then
+        echo "*** Setting Java memory minimum to default ***"
+        sed -i "/unifi.xms=.*/d" /var/lib/unifi/system.properties
+    elif [[ -n $MEM_STARTUP ]]; then
+        echo "*** Setting Java memory minimum to $MEM_STARTUP ***"
+        sed -i "s/unifi.xms=.*/unifi.xms=$MEM_STARTUP/" /var/lib/unifi/system.properties
+    fi
+elif grep -q "xmx" /var/lib/unifi/system.properties; then
+    if [[ $MEM_LIMIT == "default" ]]; then
+        echo "*** Setting Java memory limit to default ***"
+        sed -i "/unifi.xmx=.*/d" /var/lib/unifi/system.properties
+    elif [[ -n $MEM_LIMIT ]]; then
+        echo "*** Setting Java memory limit to $MEM_LIMIT ***"
+        sed -i "s/unifi.xmx=.*/unifi.xmx=$MEM_LIMIT/" /var/lib/unifi/system.properties
+    fi
+    if [[ -n $MEM_STARTUP ]]; then
+        echo "*** Setting Java memory minimum to $MEM_STARTUP ***"
+        echo "unifi.xms=$MEM_STARTUP" >> /var/lib/unifi/system.properties
+    fi
+elif grep -q "xms" /var/lib/unifi/system.properties; then
+    if [[ $MEM_STARTUP == "default" ]]; then
+        echo "*** Setting Java memory minimum to default ***"
+        sed -i "/unifi.xms=.*/d" /var/lib/unifi/system.properties
+    elif [[ -n $MEM_STARTUP ]]; then
+        echo "*** Setting Java memory minimum to $MEM_STARTUP ***"
+        sed -i "s/unifi.xms=.*/unifi.xms=$MEM_STARTUP/" /var/lib/unifi/system.properties
+    fi
+    if [[ -n $MEM_LIMIT ]]; then
+        echo "*** Setting Java memory limit to $MEM_LIMIT ***"
+        echo "unifi.xmx=$MEM_LIMIT" >> /var/lib/unifi/system.properties 
+    fi
+else
+    if [[ -n $MEM_LIMIT ]]; then
+        echo "*** Setting Java memory limit to $MEM_LIMIT ***"
+        echo "unifi.xmx=$MEM_LIMIT" >> /var/lib/unifi/system.properties 
+    fi
+    if [[ -n $MEM_STARTUP ]]; then
+        echo "*** Setting Java memory minimum to $MEM_STARTUP ***"
+        echo "unifi.xms=$MEM_STARTUP" >> /var/lib/unifi/system.properties
+    fi
+fi
+
+# disable redirect to https
+if [[ -n $REDIRECT_HTTPS ]]; then
+    if grep -e "unifi.https.redirect" /var/lib/unifi/system.properties; then
+        sed -i "s/unifi.https.redirect=.*/unifi.https.redirect=$REDIRECT_HTTPS/" /var/lib/unifi/system.properties
+    else
+        echo "unifi.https.redirect=$REDIRECT_HTTPS" >> /var/lib/unifi/system.properties
+    fi
+fi
+
+if [[ -n $UNIFI_CORE_ENABLED ]]; then
+    if grep -e "unifi.core.enabled" /var/lib/unifi/system.properties; then
+        sed -i "s/unifi.core.enabled=.*/unifi.core.enabled=$UNIFI_CORE_ENABLED/" /var/lib/unifi/system.properties
+    else
+        echo "unifi.core.enabled=$UNIFI_CORE_ENABLED" >> /var/lib/unifi/system.properties
+    fi
+fi
+
+# generate key
+if [[ ! -f /var/lib/unifi/keystore ]]; then
+    keytool -genkey -keyalg RSA -alias unifi -keystore /var/lib/unifi/keystore \
+    -storepass aircontrolenterprise -keypass aircontrolenterprise -validity 3650 \
+    -keysize 4096 -dname "cn=unifi" -ext san=dns:unifi
+fi

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+if [[ -e /scripts/init ]]; then
+    /scripts/init
+fi
+
+NAME="unifi"
+
+BASEDIR="/usr/lib/unifi"
+
+DATADIR=${UNIFI_DATA_DIR:-/var/lib/${NAME}}
+LOGDIR=${UNIFI_LOG_DIR:-/var/log/${NAME}}
+RUNDIR=${UNIFI_RUN_DIR:-/var/run/${NAME}}
+
+if [[ -z ${UNIFI_CORE_ENABLED} ]]; then
+    UNIFI_CORE_ENABLED="false"
+fi
+
+if [[ -z ${MEM_LIMIT} ]] || [[ ${MEM_LIMIT} = "default" ]]; then
+    MEM_LIMIT="1024"
+fi
+
+if [[ -z ${MEM_STARTUP} ]] || [[ ${MEM_STARTUP} = "default" ]]; then
+    MEM_STARTUP="1024"
+fi
+
+exec \
+    java \
+        -Xms"${MEM_STARTUP}M" \
+        -Xmx"${MEM_LIMIT}M" \
+        -Dlog4j2.formatMsgNoLookups=true \
+        -Dfile.encoding=UTF-8 \
+        -Djava.awt.headless=true \
+        -Dapple.awt.UIElement=true \
+        -Dunifi.core.enabled=${UNIFI_CORE_ENABLED} \
+        -XX:+UseParallelGC \
+        -XX:+ExitOnOutOfMemoryError \
+        -XX:+CrashOnOutOfMemoryError \
+        -XX:ErrorFile=${BASEDIR}/logs/hs_err_pid%p.log \
+        -Dunifi.datadir=${DATADIR} \
+        -Dunifi.logdir=${LOGDIR} \
+        -Dunifi.rundir=${RUNDIR} \
+        --add-opens java.base/java.lang=ALL-UNNAMED \
+        --add-opens java.base/java.time=ALL-UNNAMED \
+        --add-opens java.base/sun.security.util=ALL-UNNAMED \
+        --add-opens java.base/java.io=ALL-UNNAMED \
+        --add-opens java.rmi/sun.rmi.transport=ALL-UNNAMED \
+        -jar /usr/lib/unifi/lib/ace.jar start;
