@@ -3,7 +3,7 @@ FROM debian:bookworm
 
 # Defina variáveis de ambiente
 ARG UNIFI_BRANCH=stable
-ARG UNIFI_VERSION
+ARG UBNT_PATH_REPOSITORY
 ARG BUILD_DATE
 
 # Obtenha a data e alimente a variável de ambiente
@@ -43,13 +43,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends mongodb-org-ser
 #     && dpkg -i --ignore-depends=mongodb-org-server unifi.deb \
 #     && apt-get clean
 
-RUN if [ -z ${UNIFI_VERSION+x} ]; then \
-    UNIFI_VERSION=$(curl -sX GET http://dl-origin.ubnt.com/unifi/debian/dists/${UNIFI_BRANCH}/ubiquiti/binary-amd64/Packages \
-    | grep -A 7 -m 1 'Package: unifi' \
-    | awk -F ': ' '/Version/{print $2;exit}' \
-    | awk -F '-' '{print $1}'); \
+ENV UBNT_BASE_URL=https://dl-origin.ubnt.com/unifi/debian/
+RUN if [ -z ${UBNT_PATH_REPOSITORY+x} ]; then \
+    UBNT_REPOSITORY_PATH=$(curl -sX GET ${UBNT_BASE_URL}dists/${UNIFI_BRANCH}/ubiquiti/binary-amd64/Packages \
+    | grep -e 'Filename: ' \
+    | awk -F ': ' '/Filename/{print $2;exit}'); \
     fi && \
-    curl -o /tmp/unifi.deb -L "https://dl.ui.com/unifi/${UNIFI_VERSION}/unifi_sysvinit_all.deb" && \
+    echo "Using UniFi repository path: ${UBNT_REPOSITORY_PATH}" && \
+    curl -o /tmp/unifi.deb -L "${UBNT_BASE_URL}${UBNT_REPOSITORY_PATH}" && \
     dpkg -i /tmp/unifi.deb && \
     rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
 
