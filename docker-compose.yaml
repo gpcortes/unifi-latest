@@ -14,12 +14,15 @@ services:
       - ./data:/var/lib/unifi
       - ./log:/var/log/unifi
       - ./run:/var/run/unifi
-    # ports:
-    #   - 3478:3478/udp # STUN
-    #   - 8280:8080 # Device and App Communication
-    #   - 8443:8443 # App GUI/API
-    #   - 6789:6789 # Mobile Speed Test
-    #   - 8843:8843 # HTTPS portal redirection for Hotspot
+    ports:
+      # - 3478:3478/udp # STUN
+      # - 8080:8080 # Device and App Communication
+      # - 8443:8443 # App GUI/API
+      - 8880:8880 # HTTP portal redirection for Hotspot
+      - 8843:8843 # HTTPS portal redirection for Hotspot
+      # - 6789:6789 # Mobile Speed Test
+      - 8883:8883 # Remote Access service
+      - 5349:5349 # Remote access support
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
