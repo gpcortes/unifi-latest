@@ -21,8 +21,8 @@ services:
       - 8880:8880 # HTTP portal redirection for Hotspot
       - 8843:8843 # HTTPS portal redirection for Hotspot
       # - 6789:6789 # Mobile Speed Test
-      - 8883:8883 # Remote Access service
-      - 5349:5349 # Remote access support
+      # - 8883:8883 # Remote Access service
+      # - 5349:5349 # Remote access support
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
